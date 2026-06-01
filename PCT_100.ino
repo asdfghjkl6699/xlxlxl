@@ -5,6 +5,13 @@ enum State { S00, S10, S01, S11 };
 enum State current_state = S00;
 int step = 0;
 
+// ===================== 光照采集配置 =====================
+const int adcPin = 1;           // ADC 引脚（根据电路图，ADC 连接到 IO17）
+const float referenceVoltage = 3.3;  // ADC 参考电压（ESP32-C3 默认使用 3.3V）
+const int adcMaxValue = 4095;    // ADC 分辨率（12 位，范围 0 ~ 4095）
+const int lightThreshold = 2000; // 光照阈值（低于此值认为是黑暗，需要开灯）
+// ========================================================
+
 // 长按配置
 unsigned long key2_down_time = 0;
 bool key2_holding = false;
@@ -14,6 +21,10 @@ const unsigned int LONG_PRESS_MAX = 2000;  // 2秒
 // ===================== 核心：模式切换标志 =====================
 bool is_auto_mode = true;  // 默认：自动模式
 // ============================================================
+
+// ===================== 非阻塞定时器配置 =====================
+unsigned long last_adc_time = 0;  // 上次ADC采集时间
+const unsigned long adc_interval = 500;  // 采集间隔（毫秒）
 
 // 设置继电器
 void setRelay(enum State s) {
@@ -32,6 +43,7 @@ void setup() {
   relay_off();
   setRelay(S00);
   Serial.println("系统初始化完成，默认：自动模式");
+  Serial.println("ADC 分辨率: 12 位 (0 ~ 4095)");
 }
 
 void loop() {
@@ -58,6 +70,40 @@ void loop() {
   if (!key1_is_on()) {
     key2_holding = false;
     return;
+  }
+
+  // ===================== 非阻塞光照采集（始终运行） =====================
+  unsigned long now = millis();
+  if (now - last_adc_time >= adc_interval) {
+    last_adc_time = now;
+    
+    int adcValue = analogRead(adcPin);
+    float voltage = (adcValue * referenceVoltage) / adcMaxValue;
+    bool is_dark = (adcValue > lightThreshold);  // 光照值越低越暗
+    
+    Serial.print("ADC值: ");
+    Serial.print(adcValue);
+    Serial.print("\t电压: ");
+    Serial.print(voltage, 3);
+    Serial.print(" V\t模式: ");
+    Serial.print(is_auto_mode ? "自动" : "手动");
+    Serial.print("\t状态: ");
+    Serial.println(is_dark ? "暗" : "亮");
+
+    // ===================== 自动模式：光照控制灯 =====================
+    if (is_auto_mode) {
+      if (is_dark && current_state != S10) {
+        // 黑暗且灯未亮 → 开灯（S10: 灯亮，风扇停）
+        current_state = S10;
+        setRelay(current_state);
+        Serial.println("自动模式 → 检测到黑暗，自动开灯");
+      } else if (!is_dark && current_state != S00) {
+        // 明亮且灯未灭 → 关灯（S00: 灯灭，风扇停）
+        current_state = S00;
+        setRelay(current_state);
+        Serial.println("自动模式 → 检测到明亮，自动关灯");
+      }
+    }
   }
 
   // ===================== KEY2 按下：开始计时 =====================
