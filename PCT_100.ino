@@ -1,16 +1,26 @@
 #include "exti.h"
 #include "relay.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-enum State { S00, S10, S01, S11 };
+enum State { S00, S01, S10, S11 };
 enum State current_state = S00;
 int step = 0;
 
 // ===================== 光照采集配置 =====================
-const int adcPin = 1;           // ADC 引脚（根据电路图，ADC 连接到 IO17）
+const int lightAdcPin = 1;      // 光照ADC引脚（根据电路图，ADC连接到IO17，ADC2通道6）
 const float referenceVoltage = 3.3;  // ADC 参考电压（ESP32-C3 默认使用 3.3V）
 const int adcMaxValue = 4095;    // ADC 分辨率（12 位，范围 0 ~ 4095）
 const int lightThreshold = 2000; // 光照阈值（低于此值认为是黑暗，需要开灯）
-// ========================================================
+// =========================================================
+
+// ===================== 温度采集配置 =====================
+const int tempPin = 10;          // 温度传感器引脚（DS18B20连接到IO10）
+const float tempThreshold = 32.0; // 温度阈值（高于此值风扇转动，单位：摄氏度）
+
+OneWire oneWire(tempPin);        // 初始化OneWire总线
+DallasTemperature sensors(&oneWire); // 初始化温度传感器
+// =========================================================
 
 // 长按配置
 unsigned long key2_down_time = 0;
@@ -24,14 +34,17 @@ bool is_auto_mode = true;  // 默认：自动模式
 
 // ===================== 非阻塞定时器配置 =====================
 unsigned long last_adc_time = 0;  // 上次ADC采集时间
-const unsigned long adc_interval = 500;  // 采集间隔（毫秒）
+const unsigned long adc_interval = 2000;  // 光照采集间隔（毫秒）
+unsigned long last_temp_time = 0;  // 上次温度采集时间
+const unsigned long temp_interval = 3000;  // 温度采集间隔（毫秒）
+float current_temp = 25.0;         // 当前温度缓存
 
 // 设置继电器
 void setRelay(enum State s) {
   switch (s) {
     case S00: digitalWrite(6, LOW);  digitalWrite(7, LOW);  break;
-    case S10: digitalWrite(6, HIGH); digitalWrite(7, LOW);  break;
-    case S01: digitalWrite(6, LOW);  digitalWrite(7, HIGH); break;
+    case S01: digitalWrite(6, LOW); digitalWrite(7, HIGH);  break;
+    case S10: digitalWrite(6, HIGH);  digitalWrite(7, LOW); break;
     case S11: digitalWrite(6, HIGH); digitalWrite(7, HIGH); break;
   }
 }
@@ -42,11 +55,13 @@ void setup() {
   relay_init();
   relay_off();
   setRelay(S00);
+  sensors.begin();               // 初始化温度传感器
   Serial.println("系统初始化完成，默认：自动模式");
   Serial.println("ADC 分辨率: 12 位 (0 ~ 4095)");
 }
 
 void loop() {
+  // 优先处理按键中断（非阻塞）
   exti_update();
 
   // ===================== KEY1 总开关 =====================
@@ -72,36 +87,62 @@ void loop() {
     return;
   }
 
-  // ===================== 非阻塞光照采集（始终运行） =====================
   unsigned long now = millis();
+
+  // ===================== 非阻塞温度采集（独立进行，减少阻塞影响） =====================
+  if (now - last_temp_time >= temp_interval) {
+    last_temp_time = now;
+    // 采集温度（DS18B20数字传感器，会阻塞约750ms）
+    sensors.requestTemperatures();
+    current_temp = sensors.getTempCByIndex(0);
+  }
+
+  // ===================== 非阻塞光照采集（始终运行） =====================
   if (now - last_adc_time >= adc_interval) {
     last_adc_time = now;
     
-    int adcValue = analogRead(adcPin);
-    float voltage = (adcValue * referenceVoltage) / adcMaxValue;
-    bool is_dark = (adcValue > lightThreshold);  // 光照值越低越暗
+    // 采集光照
+    int lightAdcValue = analogRead(lightAdcPin);
+    float lightVoltage = (lightAdcValue * referenceVoltage) / adcMaxValue;
+    bool is_dark = (lightAdcValue > lightThreshold);  // 光照值越低越暗
     
-    Serial.print("ADC值: ");
-    Serial.print(adcValue);
-    Serial.print("\t电压: ");
-    Serial.print(voltage, 3);
-    Serial.print(" V\t模式: ");
+    // 使用缓存的温度值，避免每次都阻塞
+    bool is_hot = (current_temp > tempThreshold);
+    
+    Serial.print("光照ADC: ");
+    Serial.print(lightAdcValue);
+    Serial.print("\t温度: ");
+    Serial.print(current_temp, 1);
+    Serial.print(" C\t模式: ");
     Serial.print(is_auto_mode ? "自动" : "手动");
-    Serial.print("\t状态: ");
-    Serial.println(is_dark ? "暗" : "亮");
+    Serial.print("\t光照: ");
+    Serial.print(is_dark ? "暗" : "亮");
+    Serial.print("\t风扇: ");
+    Serial.println(is_hot ? "开" : "关");
 
-    // ===================== 自动模式：光照控制灯 =====================
+    // ===================== 自动模式：光照控制灯，温度控制风扇 =====================
     if (is_auto_mode) {
-      if (is_dark && current_state != S10) {
-        // 黑暗且灯未亮 → 开灯（S10: 灯亮，风扇停）
+      // 根据温度和光照组合设置状态
+      if (is_dark && is_hot && current_state != S11) {
+        // 黑暗且温度高 → 灯亮，风扇转（S11）
+        current_state = S11;
+        setRelay(current_state);
+        Serial.println("自动模式 → 黑暗+高温，开灯+开风扇");
+      } else if (is_dark && !is_hot && current_state != S10) {
+        // 黑暗且温度正常 → 灯亮，风扇停（S10）
         current_state = S10;
         setRelay(current_state);
-        Serial.println("自动模式 → 检测到黑暗，自动开灯");
-      } else if (!is_dark && current_state != S00) {
-        // 明亮且灯未灭 → 关灯（S00: 灯灭，风扇停）
+        Serial.println("自动模式 → 黑暗+常温，开灯");
+      } else if (!is_dark && is_hot && current_state != S01) {
+        // 明亮且温度高 → 灯灭，风扇转（S01）
+        current_state = S01;
+        setRelay(current_state);
+        Serial.println("自动模式 → 明亮+高温，开风扇");
+      } else if (!is_dark && !is_hot && current_state != S00) {
+        // 明亮且温度正常 → 灯灭，风扇停（S00）
         current_state = S00;
         setRelay(current_state);
-        Serial.println("自动模式 → 检测到明亮，自动关灯");
+        Serial.println("自动模式 → 明亮+常温，全部关闭");
       }
     }
   }
@@ -149,10 +190,10 @@ void loop() {
       if (!is_auto_mode) {  // 只有手动模式才响应
         step++;
         switch (step) {
-          case 1: current_state = S10; break;  // 亮 停
-          case 2: current_state = S00; break;  // 灭 停
-          case 3: current_state = S11; break;  // 亮 转
-          case 4: current_state = S01; step = 0; break;  // 灭 转
+          case 1: current_state = S00; break;  // 亮 停
+          case 2: current_state = S01; break;  // 灭 停
+          case 3: current_state = S10; break;  // 亮 转
+          case 4: current_state = S11; step = 0; break;  // 灭 转
         }
         setRelay(current_state);
         Serial.print("手动模式 → 短按 step: "); Serial.println(step);
