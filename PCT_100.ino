@@ -115,10 +115,10 @@ void loop() {
     Serial.print(current_temp, 1);
     Serial.print(" C\t模式: ");
     Serial.print(is_auto_mode ? "自动" : "手动");
-    Serial.print("\t光照: ");
-    Serial.print(is_dark ? "暗" : "亮");
+    Serial.print("\t灯: ");
+    Serial.print((current_state == S10 || current_state == S11) ? "亮" : "灭");
     Serial.print("\t风扇: ");
-    Serial.println(is_hot ? "开" : "关");
+    Serial.println((current_state == S01 || current_state == S11) ? "开" : "关");
 
     // ===================== 自动模式：光照控制灯，温度控制风扇 =====================
     if (is_auto_mode) {
@@ -190,10 +190,10 @@ void loop() {
       if (!is_auto_mode) {  // 只有手动模式才响应
         step++;
         switch (step) {
-          case 1: current_state = S00; break;  // 亮 停
-          case 2: current_state = S01; break;  // 灭 停
-          case 3: current_state = S10; break;  // 亮 转
-          case 4: current_state = S11; step = 0; break;  // 灭 转
+          case 1: current_state = S00; break;  // 灭 停
+          case 2: current_state = S01; break;  // 灭 转
+          case 3: current_state = S10; break;  // 亮 停
+          case 4: current_state = S11; step = 0; break;  // 亮 转
         }
         setRelay(current_state);
         Serial.print("手动模式 → 短按 step: "); Serial.println(step);
