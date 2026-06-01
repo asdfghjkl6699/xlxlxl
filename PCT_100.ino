@@ -103,12 +103,10 @@ void loop() {
       if (!is_auto_mode) {  // 只有手动模式才响应
         step++;
         switch (step) {
-          case 1: current_state = S10; break;
-          case 2: current_state = S00; break;
-          case 3: current_state = S01; break;
-          case 4: current_state = S00; break;
-          case 5: current_state = S11; break;
-          case 6: current_state = S00; step = 0; break;
+          case 1: current_state = S10; break;  // 亮 停
+          case 2: current_state = S00; break;  // 灭 停
+          case 3: current_state = S11; break;  // 亮 转
+          case 4: current_state = S01; step = 0; break;  // 灭 转
         }
         setRelay(current_state);
         Serial.print("手动模式 → 短按 step: "); Serial.println(step);
