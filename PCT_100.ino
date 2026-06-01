@@ -2,6 +2,7 @@
 #include "relay.h"
 #include "light.h"
 #include "temp.h"
+#include "lcd.h"
 
 enum State { S00, S01, S10, S11 };
 enum State current_state = S00;
@@ -35,6 +36,7 @@ void setup() {
   setRelay(S00);
   light_init();                  // 初始化光照采集
   temp_init();                   // 初始化温度传感器
+  lcd_init();                    // 初始化LCD显示屏
   Serial.println("系统初始化完成，默认：自动模式");
   Serial.println("ADC 分辨率: 12 位 (0 ~ 4095)");
 }
@@ -60,9 +62,11 @@ void loop() {
     }
   }
 
-  // KEY1 没开，直接跳过所有操作
+  // KEY1 没开，更新LCD显示并返回
   if (!key1_is_on()) {
     key2_holding = false;
+    // 更新LCD显示主开关关闭状态
+    lcd_update(is_auto_mode, false, light_adc_value, current_temp, false, false);
     return;
   }
 
@@ -70,11 +74,15 @@ void loop() {
   temp_update();  // 更新温度（独立进行，减少阻塞影响）
   light_update(); // 更新光照
 
-  // 定时输出状态信息
-  static unsigned long last_print_time = 0;
-  if (millis() - last_print_time >= 2000) {
-    last_print_time = millis();
+  // 定时更新状态
+  static unsigned long last_update_time = 0;
+  if (millis() - last_update_time >= 1000) {
+    last_update_time = millis();
     
+    bool led_on = (current_state == S10 || current_state == S11);
+    bool fan_on = (current_state == S01 || current_state == S11);
+    
+    // 更新串口输出
     Serial.print("光照ADC: ");
     Serial.print(light_adc_value);
     Serial.print("\t温度: ");
@@ -82,9 +90,12 @@ void loop() {
     Serial.print(" C\t模式: ");
     Serial.print(is_auto_mode ? "自动" : "手动");
     Serial.print("\t灯: ");
-    Serial.print((current_state == S10 || current_state == S11) ? "亮" : "灭");
+    Serial.print(led_on ? "亮" : "灭");
     Serial.print("\t风扇: ");
-    Serial.println((current_state == S01 || current_state == S11) ? "开" : "关");
+    Serial.println(fan_on ? "开" : "关");
+
+    // 更新LCD显示
+    lcd_update(is_auto_mode, key1_is_on(), light_adc_value, current_temp, led_on, fan_on);
 
     // ===================== 自动模式：光照控制灯，温度控制风扇 =====================
     if (is_auto_mode) {
