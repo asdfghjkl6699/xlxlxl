@@ -1,26 +1,11 @@
 #include "exti.h"
 #include "relay.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#include "light.h"
+#include "temp.h"
 
 enum State { S00, S01, S10, S11 };
 enum State current_state = S00;
 int step = 0;
-
-// ===================== 光照采集配置 =====================
-const int lightAdcPin = 1;      // 光照ADC引脚（根据电路图，ADC连接到IO17，ADC2通道6）
-const float referenceVoltage = 3.3;  // ADC 参考电压（ESP32-C3 默认使用 3.3V）
-const int adcMaxValue = 4095;    // ADC 分辨率（12 位，范围 0 ~ 4095）
-const int lightThreshold = 2000; // 光照阈值（低于此值认为是黑暗，需要开灯）
-// =========================================================
-
-// ===================== 温度采集配置 =====================
-const int tempPin = 10;          // 温度传感器引脚（DS18B20连接到IO10）
-const float tempThreshold = 32.0; // 温度阈值（高于此值风扇转动，单位：摄氏度）
-
-OneWire oneWire(tempPin);        // 初始化OneWire总线
-DallasTemperature sensors(&oneWire); // 初始化温度传感器
-// =========================================================
 
 // 长按配置
 unsigned long key2_down_time = 0;
@@ -31,13 +16,6 @@ const unsigned int LONG_PRESS_MAX = 2000;  // 2秒
 // ===================== 核心：模式切换标志 =====================
 bool is_auto_mode = true;  // 默认：自动模式
 // ============================================================
-
-// ===================== 非阻塞定时器配置 =====================
-unsigned long last_adc_time = 0;  // 上次ADC采集时间
-const unsigned long adc_interval = 2000;  // 光照采集间隔（毫秒）
-unsigned long last_temp_time = 0;  // 上次温度采集时间
-const unsigned long temp_interval = 3000;  // 温度采集间隔（毫秒）
-float current_temp = 25.0;         // 当前温度缓存
 
 // 设置继电器
 void setRelay(enum State s) {
@@ -55,7 +33,8 @@ void setup() {
   relay_init();
   relay_off();
   setRelay(S00);
-  sensors.begin();               // 初始化温度传感器
+  light_init();                  // 初始化光照采集
+  temp_init();                   // 初始化温度传感器
   Serial.println("系统初始化完成，默认：自动模式");
   Serial.println("ADC 分辨率: 12 位 (0 ~ 4095)");
 }
@@ -87,30 +66,17 @@ void loop() {
     return;
   }
 
-  unsigned long now = millis();
+  // ===================== 非阻塞传感器采集 =====================
+  temp_update();  // 更新温度（独立进行，减少阻塞影响）
+  light_update(); // 更新光照
 
-  // ===================== 非阻塞温度采集（独立进行，减少阻塞影响） =====================
-  if (now - last_temp_time >= temp_interval) {
-    last_temp_time = now;
-    // 采集温度（DS18B20数字传感器，会阻塞约750ms）
-    sensors.requestTemperatures();
-    current_temp = sensors.getTempCByIndex(0);
-  }
-
-  // ===================== 非阻塞光照采集（始终运行） =====================
-  if (now - last_adc_time >= adc_interval) {
-    last_adc_time = now;
-    
-    // 采集光照
-    int lightAdcValue = analogRead(lightAdcPin);
-    float lightVoltage = (lightAdcValue * referenceVoltage) / adcMaxValue;
-    bool is_dark = (lightAdcValue > lightThreshold);  // 光照值越低越暗
-    
-    // 使用缓存的温度值，避免每次都阻塞
-    bool is_hot = (current_temp > tempThreshold);
+  // 定时输出状态信息
+  static unsigned long last_print_time = 0;
+  if (millis() - last_print_time >= 2000) {
+    last_print_time = millis();
     
     Serial.print("光照ADC: ");
-    Serial.print(lightAdcValue);
+    Serial.print(light_adc_value);
     Serial.print("\t温度: ");
     Serial.print(current_temp, 1);
     Serial.print(" C\t模式: ");
