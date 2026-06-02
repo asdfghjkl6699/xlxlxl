@@ -3,6 +3,11 @@
 #include "light.h"
 #include "temp.h"
 #include "lcd.h"
+#include "WiFi.h"
+
+// WiFi配置
+const char* WIFI_SSID = "mmiinngg";    // WiFi账号
+const char* WIFI_PASSWORD = "yuan123456";  // WiFi密码
 
 enum State { S00, S01, S10, S11 };
 enum State current_state = S00;
@@ -35,6 +40,32 @@ void setRelay(enum State s) {
 
 void setup() {
   Serial.begin(115200);
+  
+  // WiFi连接
+  Serial.println("\n正在连接WiFi...");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  int connect_count = 0;
+  while (WiFi.status() != WL_CONNECTED && connect_count < 30) {
+    delay(500);
+    Serial.print(".");
+    connect_count++;
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi连接成功！");
+    Serial.print("IP地址: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("子网掩码: ");
+    Serial.println(WiFi.subnetMask());
+    Serial.print("网关: ");
+    Serial.println(WiFi.gatewayIP());
+    Serial.print("DNS服务器: ");
+    Serial.println(WiFi.dnsIP());
+  } else {
+    Serial.println("\nWiFi连接失败！");
+  }
+  
   exti_init();
   relay_init();
   relay_off();
