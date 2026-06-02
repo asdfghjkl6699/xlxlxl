@@ -6,8 +6,8 @@
 #include "WiFi.h"
 
 // WiFi配置
-const char* WIFI_SSID = "mmiinngg";    // WiFi账号
-const char* WIFI_PASSWORD = "yuan123456";  // WiFi密码
+char WIFI_SSID[32] = "";    // WiFi账号
+char WIFI_PASSWORD[64] = "";  // WiFi密码
 
 enum State { S00, S01, S10, S11 };
 enum State current_state = S00;
@@ -38,11 +38,65 @@ void setRelay(enum State s) {
   }
 }
 
-void setup() {
-  Serial.begin(115200);
+// WiFi扫描和连接函数
+void wifiConnect() {
+  Serial.println("\n====================================");
+  Serial.println("        WiFi配置向导");
+  Serial.println("====================================");
   
-  // WiFi连接
-  Serial.println("\n正在连接WiFi...");
+  // 开始扫描WiFi网络
+  Serial.println("\n正在扫描附近WiFi网络...");
+  int n = WiFi.scanNetworks();
+  
+  if (n == 0) {
+    Serial.println("未发现WiFi网络！");
+    return;
+  }
+  
+  Serial.printf("\n发现 %d 个WiFi网络:\n", n);
+  for (int i = 0; i < n; i++) {
+    Serial.printf("%2d. %s	信号强度: %ddBm	加密: %s\n",
+                  i + 1,
+                  WiFi.SSID(i).c_str(),
+                  WiFi.RSSI(i),
+                  WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "无" : "有");
+    delay(10);
+  }
+  
+  // 等待用户选择WiFi
+  Serial.println("\n请输入要连接的WiFi序号（1-" + String(n) + "):");
+  while (!Serial.available()) {
+    delay(100);
+  }
+  int selected = Serial.parseInt() - 1;
+  while (Serial.available()) Serial.read(); // 清空缓冲区
+  
+  if (selected < 0 || selected >= n) {
+    Serial.println("输入无效！");
+    return;
+  }
+  
+  strcpy(WIFI_SSID, WiFi.SSID(selected).c_str());
+  Serial.printf("\n已选择: %s\n", WIFI_SSID);
+  
+  // 输入密码
+  Serial.println("请输入WiFi密码（无密码直接回车）:");
+  while (!Serial.available()) {
+    delay(100);
+  }
+  
+  int len = 0;
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '\n' || c == '\r') break;
+    if (len < 63) {
+      WIFI_PASSWORD[len++] = c;
+    }
+  }
+  WIFI_PASSWORD[len] = '\0';
+  
+  // 连接WiFi
+  Serial.printf("\n正在连接 %s...\n", WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
   int connect_count = 0;
@@ -53,7 +107,9 @@ void setup() {
   }
   
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi连接成功！");
+    Serial.println("\n\n====================================");
+    Serial.println("        WiFi连接成功！");
+    Serial.println("====================================");
     Serial.print("IP地址: ");
     Serial.println(WiFi.localIP());
     Serial.print("子网掩码: ");
@@ -62,9 +118,17 @@ void setup() {
     Serial.println(WiFi.gatewayIP());
     Serial.print("DNS服务器: ");
     Serial.println(WiFi.dnsIP());
+    Serial.println("====================================\n");
   } else {
-    Serial.println("\nWiFi连接失败！");
+    Serial.println("\nWiFi连接失败！请检查密码是否正确。");
   }
+}
+
+void setup() {
+  Serial.begin(115200);
+  
+  // WiFi连接（通过串口配置）
+  wifiConnect();
   
   exti_init();
   relay_init();
