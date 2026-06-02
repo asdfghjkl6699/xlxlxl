@@ -1,49 +1,61 @@
-// d:\Arduino\Projects\PCT_100\lcd.cpp
 #include "lcd.h"
 #include <U8g2lib.h>
 
-// 自定义I2C引脚（根据电路图：SDA→IO4，SCL→IO5）
-#define I2C_SDA 4
-#define I2C_SCL 5
-
-// 使用软件I2C，指定地址为0x3C（SH1106常见地址）
-U8G2_SH1106_128X64_VCOMH0_F_SW_I2C u8g2(U8G2_R0, I2C_SCL, I2C_SDA, U8X8_PIN_NONE);
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(
+  U8G2_R0,
+  /* reset=*/ U8X8_PIN_NONE,
+  /* clock=*/ OLED_SCL_PIN,
+  /* data=*/ OLED_SDA_PIN
+);
 
 void lcd_init(void) {
   u8g2.begin();
-  u8g2.setContrast(0xFF);  // 最大对比度
-  u8g2.setPowerSave(0);    // 开启显示
-  u8g2.setFont(u8g2_font_ncenB08_tr);  // 设置字体
+  u8g2.enableUTF8Print();
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_wqy12_t_gb2312);
+  u8g2.drawUTF8(28, 35, "系统启动中...");
+  u8g2.sendBuffer();
+  delay(1000);
 }
 
-void lcd_update(bool is_auto, bool main_on, int light_val, float temp_val, bool led_on, bool fan_on) {
+void lcd_update(bool is_auto_mode, bool main_on,
+                 int light_val, int light_threshold,
+                 float temp_val, float temp_threshold,
+                 bool led_on, bool fan_on) {
   u8g2.clearBuffer();
-  
-  // 第一行：MODE和MAIN状态
-  u8g2.drawStr(0, 10, "MODE: ");
-  u8g2.drawStr(40, 10, is_auto ? "auto" : "manual");
-  u8g2.drawStr(68, 10, "MAIN: ");
-  u8g2.drawStr(105, 10, main_on ? "ON" : "OFF");
-  
-  // 第二行：光照值
-  u8g2.drawStr(0, 25, "LIGHT: ");
-  char light_str[10];
-  sprintf(light_str, "%d", light_val);
-  u8g2.drawStr(56, 25, light_str);
-  u8g2.drawStr(80, 25, "/ 4095");
-  
-  // 第三行：温度值
-  u8g2.drawStr(0, 40, "TEMP: ");
-  char temp_str[10];
-  sprintf(temp_str, "%.1f", temp_val);
-  u8g2.drawStr(48, 40, temp_str);
-  u8g2.drawStr(72, 40, "/ 32.0");
-  
-  // 第四行：LED和FAN状态
-  u8g2.drawStr(0, 55, "LED: ");
-  u8g2.drawStr(36, 55, led_on ? "ON" : "OFF");
-  u8g2.drawStr(60, 55, "FAN: ");
-  u8g2.drawStr(96, 55, fan_on ? "ON" : "OFF");
-  
-  u8g2.sendBuffer();  // 刷新屏幕
+  u8g2.setFont(u8g2_font_wqy12_t_gb2312);
+
+  // 第一行：模式 + 总开关
+  u8g2.setCursor(2, 14);
+  u8g2.print("模式:");
+  u8g2.print(is_auto_mode ? "自动" : "手动");
+  u8g2.setCursor(68, 14);
+  u8g2.print("总:");
+  u8g2.print(main_on ? "开" : "关");
+
+  // 第二行：光照（显示当前值/阈值）
+  u8g2.setCursor(2, 30);
+  u8g2.print("光照:");
+  u8g2.print(light_val);
+  u8g2.print("/");
+  u8g2.print(light_threshold);
+  u8g2.print(" Lux");
+
+  // 第三行：温度（显示当前值/阈值）
+  u8g2.setCursor(2, 46);
+  u8g2.print("温度:");
+  u8g2.print(temp_val, 1);
+  u8g2.print("/");
+  u8g2.print(temp_threshold, 1);
+  u8g2.print(" ℃");
+
+  // 第四行：灯 + 风扇
+  u8g2.setCursor(2, 62);
+  u8g2.print("灯:");
+  u8g2.print(led_on ? "开" : "关");
+  u8g2.setCursor(58, 62);
+  u8g2.print("风扇:");
+  u8g2.print(fan_on ? "开" : "关");
+
+  u8g2.sendBuffer();
 }
