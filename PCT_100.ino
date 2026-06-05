@@ -3,13 +3,107 @@
 #include "light.h"
 #include "temp.h"
 #include "lcd.h"
+#include "ws2812.h"
 #include "WiFi.h"
+#include <nvs_flash.h>
+#include <nvs.h>
 
 // WiFi配置
 char WIFI_SSID[32] = "";    // WiFi账号
 char WIFI_PASSWORD[64] = "";  // WiFi密码
 
+// NVS存储相关
+#define NVS_NAMESPACE "wifi_config"
+nvs_handle_t my_nvs_handle;
+
+// 状态枚举
 enum State { S00, S01, S10, S11 };
+
+// 从NVS读取WiFi配置
+bool loadWiFiConfig() {
+  esp_err_t err;
+  
+  // 打开NVS命名空间
+  err = nvs_open(NVS_NAMESPACE, NVS_READONLY, &my_nvs_handle);
+  if (err != ESP_OK) {
+    Serial.println("NVS打开失败，首次配置");
+    return false;
+  }  
+  
+  // 读取SSID
+  size_t len = sizeof(WIFI_SSID);
+  err = nvs_get_str(my_nvs_handle, "ssid", WIFI_SSID, &len);
+  if (err != ESP_OK) {
+    Serial.println("未找到保存的WiFi配置");
+    nvs_close(my_nvs_handle);
+    return false;
+  }
+  
+  // 读取密码
+  len = sizeof(WIFI_PASSWORD);
+  err = nvs_get_str(my_nvs_handle, "password", WIFI_PASSWORD, &len);
+  if (err != ESP_OK) {
+    Serial.println("密码读取失败");
+    nvs_close(my_nvs_handle);
+    return false;
+  }
+  
+  .
+  nvs_close(my_nvs_handle);
+  Serial.printf("已加载保存的WiFi配置: %s\n", WIFI_SSID);
+  return true;
+} 
+
+// 保存WiFi配置到NVS
+bool saveWiFiConfig() {
+  esp_err_t err;
+  
+  // 打开NVS命名空间（读写模式）
+  err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &my_nvs_handle);
+  if (err != ESP_OK) {
+    Serial.println("NVS打开失败");
+    return false;
+  }
+  
+  // 写入SSID
+  err = nvs_set_str(my_nvs_handle, "ssid", WIFI_SSID);
+  if (err != ESP_OK) {
+    Serial.println("SSID保存失败");
+    nvs_close(my_nvs_handle);
+    return false;
+  }
+  
+  // 写入密码
+  err = nvs_set_str(my_nvs_handle, "password", WIFI_PASSWORD);
+  if (err != ESP_OK) {
+    Serial.println("密码保存失败");
+    nvs_close(my_nvs_handle);
+    return false;
+  }
+  
+  // 提交写入
+  err = nvs_commit(my_nvs_handle);
+  if (err != ESP_OK) {
+    Serial.println("NVS提交失败");
+    nvs_close(my_nvs_handle);
+    return false;
+  }
+  
+  nvs_close(my_nvs_handle);
+  Serial.println("WiFi配置已保存到Flash");
+  return true;
+}
+
+// 设置继电器
+void setRelay(enum State s) {
+  switch (s) {
+    case S00: digitalWrite(6, LOW);  digitalWrite(7, LOW);  break;
+    case S01: digitalWrite(6, LOW);  digitalWrite(7, HIGH); break;
+    case S10: digitalWrite(6, HIGH); digitalWrite(7, LOW);  break;
+    case S11: digitalWrite(6, HIGH); digitalWrite(7, HIGH); break;
+  }
+}
+
 enum State current_state = S00;
 int step = 0;
 
@@ -28,14 +122,55 @@ static unsigned long last_display_time = 0;
 const unsigned int SENSOR_INTERVAL = 50;    // 传感器50ms更新一次（加快ADC读取频率）
 const unsigned int DISPLAY_INTERVAL = 2000;  // 显示+串口2s更新一次
 
-// 设置继电器
-void setRelay(enum State s) {
-  switch (s) {
-    case S00: digitalWrite(6, LOW);  digitalWrite(7, LOW);  break;
-    case S01: digitalWrite(6, LOW);  digitalWrite(7, HIGH); break;
-    case S10: digitalWrite(6, HIGH); digitalWrite(7, LOW);  break;
-    case S11: digitalWrite(6, HIGH); digitalWrite(7, HIGH); break;
+// 断开WiFi连接（保留配置，方便重连）
+void disconnectWiFi() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // 参数为false表示断开连接但保留AP配置
+    WiFi.disconnect(false);
+    // 关闭WiFi模块电源以确保完全断开
+    WiFi.mode(WIFI_OFF);
+    Serial.println("\nWiFi已断开连接（配置已保留）");
+  } else {
+    Serial.println("\nWiFi未连接");
   }
+}
+
+// 清除保存的WiFi配置
+void clearWiFiConfig() {
+  esp_err_t err;
+  
+  err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &my_nvs_handle);
+  if (err != ESP_OK) {
+    Serial.println("NVS打开失败");
+    return;
+  }
+  
+  // 删除SSID和密码
+  err = nvs_erase_key(my_nvs_handle, "ssid");
+  if (err != ESP_OK) {
+    Serial.println("SSID删除失败");
+    nvs_close(my_nvs_handle);
+    return;
+  }
+  
+  err = nvs_erase_key(my_nvs_handle, "password");
+  if (err != ESP_OK) {
+    Serial.println("密码删除失败");
+    nvs_close(my_nvs_handle);
+    return;
+  }
+  
+  err = nvs_commit(my_nvs_handle);
+  if (err != ESP_OK) {
+    Serial.println("NVS提交失败");
+    nvs_close(my_nvs_handle);
+    return;
+  }
+  
+  nvs_close(my_nvs_handle);
+  WIFI_SSID[0] = '\0';
+  WIFI_PASSWORD[0] = '\0';
+  Serial.println("WiFi配置已清除，下次上电将进入配置向导");
 }
 
 // WiFi扫描和连接函数
@@ -76,24 +211,37 @@ void wifiConnect() {
     return;
   }
   
-  strcpy(WIFI_SSID, WiFi.SSID(selected).c_str());
-  Serial.printf("\n已选择: %s\n", WIFI_SSID);
+  char selected_ssid[32];
+  strcpy(selected_ssid, WiFi.SSID(selected).c_str());
+  Serial.printf("\n已选择: %s\n", selected_ssid);
   
-  // 输入密码
-  Serial.println("请输入WiFi密码（无密码直接回车）:");
-  while (!Serial.available()) {
-    delay(100);
+  // 检查是否是已保存过密码的网络
+  bool useSavedPassword = false;
+  if (strcmp(selected_ssid, WIFI_SSID) == 0 && strlen(WIFI_PASSWORD) > 0) {
+    useSavedPassword = true;
+    Serial.println("检测到已保存的密码，自动使用...");
   }
   
-  int len = 0;
-  while (Serial.available()) {
-    char c = Serial.read();
-    if (c == '\n' || c == '\r') break;
-    if (len < 63) {
-      WIFI_PASSWORD[len++] = c;
+  if (!useSavedPassword) {
+    // 输入密码
+    Serial.println("请输入WiFi密码（无密码直接回车）:");
+    while (!Serial.available()) {
+      delay(100);
     }
+    
+    int len = 0;
+    while (Serial.available()) {
+      char c = Serial.read();
+      if (c == '\n' || c == '\r') break;
+      if (len < 63) {
+        WIFI_PASSWORD[len++] = c;
+      }
+    }
+    WIFI_PASSWORD[len] = '\0';
   }
-  WIFI_PASSWORD[len] = '\0';
+  
+  // 更新SSID为当前选择的网络
+  strcpy(WIFI_SSID, selected_ssid);
   
   // 连接WiFi
   Serial.printf("\n正在连接 %s...\n", WIFI_SSID);
@@ -119,6 +267,9 @@ void wifiConnect() {
     Serial.print("DNS服务器: ");
     Serial.println(WiFi.dnsIP());
     Serial.println("====================================\n");
+    
+    // 连接成功后保存配置到Flash
+    saveWiFiConfig();
   } else {
     Serial.println("\nWiFi连接失败！请检查密码是否正确。");
   }
@@ -127,8 +278,54 @@ void wifiConnect() {
 void setup() {
   Serial.begin(115200);
   
-  // WiFi连接（通过串口配置）
-  wifiConnect();
+  // 初始化WS2812 LED
+  ws2812_init();
+  
+  // 开机万色灯闪烁提示
+  Serial.println("\n====================================");
+  Serial.println("        开机万色灯检测");
+  Serial.println("====================================");
+  ws2812_rainbow_cycle(2);  // 循环2次
+  ws2812_off();
+  Serial.println("万色灯检测完成！\n");
+  
+  // 初始化NVS
+  esp_err_t err = nvs_flash_init();
+  if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    // NVS分区需要擦除，然后重新初始化
+    nvs_flash_erase();
+    nvs_flash_init();
+  }
+  
+  // 尝试从NVS加载WiFi配置
+  bool hasSavedConfig = loadWiFiConfig();
+  
+  if (hasSavedConfig) {
+    // 有保存的配置，直接连接
+    Serial.printf("尝试连接已保存的WiFi: %s...\n", WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    
+    int connect_count = 0;
+    while (WiFi.status() != WL_CONNECTED && connect_count < 30) {
+      delay(500);
+      Serial.print(".");
+      ws2812_wifi_indicator(false);  // 连接中指示
+      connect_count++;
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("\nWiFi连接成功！");
+      Serial.print("IP地址: ");
+      Serial.println(WiFi.localIP());
+      ws2812_wifi_indicator(true);  // 已连接指示
+    } else {
+      Serial.println("\n保存的WiFi连接失败，进入配置向导...");
+      wifiConnect();
+    }
+  } else {
+    // 没有保存的配置，进入配置向导
+    wifiConnect();
+  }
   
   exti_init();
   relay_init();
@@ -142,6 +339,110 @@ void setup() {
 }
 
 void loop() {
+  // ===================== WiFi状态指示更新 =====================
+  ws2812_wifi_indicator(WiFi.status() == WL_CONNECTED);
+  
+  // ===================== 【串口命令处理】 =====================
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    
+    if (cmd == "disconnect") {
+      disconnectWiFi();
+    } else if (cmd == "clear") {
+      clearWiFiConfig();
+    } else if (cmd == "reconnect") {
+      disconnectWiFi();
+      delay(500);
+      if (strlen(WIFI_SSID) > 0) {
+        // 重新启用WiFi模块
+        WiFi.mode(WIFI_STA);
+        Serial.printf("重新连接 %s...\n", WIFI_SSID);
+        // 使用保存的SSID和密码直接连接
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        
+        int connect_count = 0;
+        while (WiFi.status() != WL_CONNECTED && connect_count < 30) {
+          delay(500);
+          Serial.print(".");
+          ws2812_wifi_indicator(false);  // 连接中指示
+          connect_count++;
+        }
+        
+        if (WiFi.status() == WL_CONNECTED) {
+          Serial.println("\n重新连接成功！");
+          Serial.print("IP地址: ");
+          Serial.println(WiFi.localIP());
+          ws2812_wifi_indicator(true);  // 已连接指示
+        } else {
+          Serial.println("\n重新连接失败！");
+        }
+      } else {
+        Serial.println("没有保存的WiFi配置，请进入配置向导");
+        wifiConnect();
+      }
+    } else if (cmd == "wifi") {
+      wifiConnect();
+    } else if (cmd == "status") {
+      Serial.print("WiFi状态: ");
+      switch (WiFi.status()) {
+        case WL_CONNECTED:
+          Serial.println("已连接");
+          Serial.print("IP: ");
+          Serial.println(WiFi.localIP());
+          break;
+        case WL_DISCONNECTED:
+          Serial.println("已断开");
+          break;
+        case WL_CONNECT_FAILED:
+          Serial.println("连接失败");
+          break;
+        default:
+          Serial.println("未知");
+      }
+    } else if (cmd == "test_led") {
+      // 测试万色灯功能
+      Serial.println("\n====================================");
+      Serial.println("        万色灯测试");
+      Serial.println("====================================");
+      
+      // 测试各种颜色
+      Serial.println("红色...");
+      ws2812_set_color(COLOR_RED);
+      delay(500);
+      
+      Serial.println("绿色...");
+      ws2812_set_color(COLOR_GREEN);
+      delay(500);
+      
+      Serial.println("蓝色...");
+      ws2812_set_color(COLOR_BLUE);
+      delay(500);
+      
+      Serial.println("黄色...");
+      ws2812_set_color(COLOR_YELLOW);
+      delay(500);
+      
+      Serial.println("青色...");
+      ws2812_set_color(COLOR_CYAN);
+      delay(500);
+      
+      Serial.println("品红...");
+      ws2812_set_color(COLOR_MAGENTA);
+      delay(500);
+      
+      Serial.println("白色...");
+      ws2812_set_color(COLOR_WHITE);
+      delay(500);
+      
+      Serial.println("万色循环...");
+      ws2812_rainbow_cycle(3);
+      
+      ws2812_wifi_indicator(WiFi.status() == WL_CONNECTED);
+      Serial.println("\n万色灯测试完成！");
+    }
+  }
+
   // ===================== 【最高优先级】按键逻辑 优先执行 =====================
   exti_update();
 
