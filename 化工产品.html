@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化工控制实训装置 - 产品说明书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        /* 头部导航 */
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #ffd700;
+        }
+
+        /* 英雄区域 */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* 内容容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* 产品概述 */
+        .overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+            align-items: center;
+        }
+
+        .product-image {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .overview-text h2 {
+            color: #1e3c72;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .overview-text p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        /* 特性卡片 */
+        .features {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 3rem;
+            font-size: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .feature-card h3 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 技术参数 */
+        .specs {
+            background: white;
+            border-radius: 15px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 4rem;
+        }
+
+        .specs table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .specs th, .specs td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .specs th {
+            background: #f8f9fa;
+            color: #1e3c72;
+            font-weight: 600;
+            width: 30%;
+        }
+
+        .specs tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 功能模块 */
+        .modules {
+            margin-bottom: 4rem;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .module-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .module-card h3 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .module-card ul {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .module-card li {
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .module-card li::before {
+            content: '✓';
+            position: absolute;
+            left: -1rem;
+            color: #ffd700;
+        }
+
+        /* 应用场景 */
+        .applications {
+            margin-bottom: 4rem;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .app-item {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .app-item .app-icon {
+            width: 50px;
+            height: 50px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.2rem;
+        }
+
+        .app-item h4 {
+            color: #1e3c72;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-item p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* 联系方式 */
+        .contact {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 15px;
+        }
+
+        .contact h2 {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .contact-item {
+            padding: 1rem;
+        }
+
+        .contact-item .contact-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 页脚 */
+        footer {
+            background: #1e3c72;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        footer p {
+            opacity: 0.8;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .overview {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .apps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header>
+        <nav>
+            <div class="logo">化工控制实训装置</div>
+            <ul class="nav-links">
+                <li><a href="#overview">产品概述</a></li>
+                <li><a href="#features">产品特点</a></li>
+                <li><a href="#specs">技术参数</a></li>
+                <li><a href="#modules">功能模块</a></li>
+                <li><a href="#contact">联系方式</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <h1>HC-2000 化工控制实训装置</h1>
+        <p>工业自动化综合实训解决方案 | 培养卓越工程人才</p>
+    </section>
+
+    <!-- 产品概述 -->
+    <section id="overview" class="container">
+        <div class="overview">
+            <div class="product-image">
+                <img src="https://via.placeholder.com/600x400?text=化工控制实训装置产品图" alt="化工控制实训装置">
+            </div>
+            <div class="overview-text">
+                <h2>产品概述</h2>
+                <p>HC-2000型化工控制实训装置是专为高等院校、职业院校化工、自动化等相关专业设计的综合性实训平台。该装置模拟真实化工生产过程，集成了多种工业控制技术，为学生提供从理论到实践的完整学习体验。</p>
+                <p>装置采用模块化设计，涵盖流体力学、传热学、化学反应工程等多个领域，可开展多种控制策略的实验与实训项目，是培养高素质工程技术人才的理想设备。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 产品特点 -->
+    <section id="features" class="container">
+        <h2 class="section-title">产品特点</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon">🔧</div>
+                <h3>模块化设计</h3>
+                <p>采用模块化结构设计，各功能单元独立运行，便于维护和扩展，支持多种实训项目组合。</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⚡</div>
+                <h3>工业级组件</h3>
+                <p>采用西门子、施耐德等知名品牌工业级元器件，确保设备稳定性和可靠性，贴近实际工业环境。</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📊</div>
+                <h3>智能监控系统</h3>
+                <p>配备先进的SCADA监控系统，实时采集和显示工艺参数，支持数据记录与分析。</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💡</div>
+                <h3>安全保护机制</h3>
+                <p>多重安全保护措施，包括超温、超压、漏电保护等，确保实训过程安全可靠。</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔄</div>
+                <h3>灵活控制模式</h3>
+                <p>支持手动/自动控制切换，可实现PID控制、模糊控制、神经网络控制等多种控制策略。</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📚</div>
+                <h3>配套教学资源</h3>
+                <p>提供完整的实训指导书、实验案例和教学课件，助力教学工作顺利开展。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术参数 -->
+    <section id="specs" class="container">
+        <h2 class="section-title">技术参数</h2>
+        <div class="specs">
+            <table>
+                <tr>
+                    <th>项目</th>
+                    <th>参数</th>
+                </tr>
+                <tr>
+                    <td>电源规格</td>
+                    <td>AC 380V ±10%，50Hz，三相五线制</td>
+                </tr>
+                <tr>
+                    <td>装置尺寸</td>
+                    <td>长2200mm × 宽1200mm × 高2000mm</td>
+                </tr>
+                <tr>
+                    <td>工作温度</td>
+                    <td>-10℃ ~ +45℃</td>
+                </tr>
+                <tr>
+                    <td>控制方式</td>
+                    <td>PLC控制 + 上位机监控</td>
+                </tr>
+                <tr>
+                    <td>PLC型号</td>
+                    <td>Siemens S7-1200/S7-1500</td>
+                </tr>
+                <tr>
+                    <td>触摸屏</td>
+                    <td>10寸工业级触摸屏</td>
+                </tr>
+                <tr>
+                    <td>通讯方式</td>
+                    <td>PROFINET、Modbus TCP/IP</td>
+                </tr>
+                <tr>
+                    <td>功率消耗</td>
+                    <td>≤5kW</td>
+                </tr>
+                <tr>
+                    <td>重量</td>
+                    <td>约800kg</td>
+                </tr>
+                <tr>
+                    <td>安全标准</td>
+                    <td>符合GB/T 19001-2016、GB 5083-1999</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- 功能模块 -->
+    <section id="modules" class="container">
+        <h2 class="section-title">功能模块</h2>
+        <div class="modules-grid">
+            <div class="module-card">
+                <h3>🔬 过程控制模块</h3>
+                <ul>
+                    <li>温度控制系统</li>
+                    <li>压力控制系统</li>
+                    <li>流量控制系统</li>
+                    <li>液位控制系统</li>
+                    <li>pH值调节系统</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>⚙️ 执行机构模块</h3>
+                <ul>
+                    <li>电动调节阀</li>
+                    <li>气动调节阀</li>
+                    <li>变频调速系统</li>
+                    <li>步进电机控制</li>
+                    <li>电磁阀组</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>📡 检测传感模块</h3>
+                <ul>
+                    <li>温度传感器（PT100/K型）</li>
+                    <li>压力变送器</li>
+                    <li>电磁流量计</li>
+                    <li>液位变送器</li>
+                    <li>pH传感器</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>💻 监控管理模块</h3>
+                <ul>
+                    <li>上位机组态软件</li>
+                    <li>数据采集与存储</li>
+                    <li>报警与故障诊断</li>
+                    <li>远程监控功能</li>
+                    <li>实验报告生成</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用场景 -->
+    <section class="applications container">
+        <h2 class="section-title">应用场景</h2>
+        <div class="apps-grid">
+            <div class="app-item">
+                <div class="app-icon">🏫</div>
+                <h4>高校教学</h4>
+                <p>自动化、化工专业课程实验</p>
+            </div>
+            <div class="app-item">
+                <div class="app-icon">🔬</div>
+                <h4>科研实验</h4>
+                <p>新型控制算法研究与验证</p>
+            </div>
+            <div class="app-item">
+                <div class="app-icon">🎓</div>
+                <h4>技能培训</h4>
+                <p>工程技术人员技能提升</p>
+            </div>
+            <div class="app-item">
+                <div class="app-icon">🏆</div>
+                <h4>竞赛平台</h4>
+                <p>自动化竞赛与技能比武</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系方式 -->
+    <section id="contact" class="container">
+        <div class="contact">
+            <h2>联系我们</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon">🏢</div>
+                    <h4>公司名称</h4>
+                    <p>华创工业设备有限公司</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📍</div>
+                    <h4>地址</h4>
+                    <p>上海市浦东新区张江高科技园区</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📞</div>
+                    <h4>电话</h4>
+                    <p>400-888-8888</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">✉️</div>
+                    <h4>邮箱</h4>
+                    <p>sales@huachuang.com</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>© 2024 华创工业设备有限公司 版权所有 | 化工控制实训装置产品说明书</p>
+    </footer>
+</body>
+</html>
