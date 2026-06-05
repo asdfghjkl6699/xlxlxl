@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCT-100 化工控制实训装置 - 产品说明书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .hero h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .device-image {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0e8f8 100%);
+            border-radius: 20px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        .specs-preview {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .specs-preview h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .spec-item span:first-child {
+            color: #7f8c8d;
+        }
+
+        .spec-item span:last-child {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">PCT-100</div>
+            <div class="nav-links">
+                <a href="index.html" class="active">产品概述</a>
+                <a href="specs.html">技术规格</a>
+                <a href="guide.html">使用指南</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>PCT-100 化工控制实训装置</h1>
+            <p>基于 ESP32 的智能化工控制实训平台，集成温度、光照检测与自动控制功能</p>
+            <div class="device-image">⚙️</div>
+            <a href="guide.html" style="display: inline-block; padding: 0.8rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 30px; font-weight: 500; margin-top: 1rem;">开始使用</a>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>🌡️ 智能温度控制</h3>
+                <p>采用 DS18B20 数字温度传感器，实时监测环境温度，超过设定阈值自动开启风扇降温。支持运行时阈值调整，灵活适应不同实训场景。</p>
+            </div>
+            <div class="feature-card">
+                <h3>💡 光照感应调节</h3>
+                <p>高精度光照传感器实时采集环境光强度，光线不足时自动点亮LED灯。支持自动/手动双模式切换，满足多样化教学需求。</p>
+            </div>
+            <div class="feature-card">
+                <h3>📡 物联网远程监控</h3>
+                <p>集成 WiFi 与 MQTT 协议，支持远程状态监控与控制。串口命令丰富，便于调试和实训教学演示。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎨 状态可视化</h3>
+                <p>OLED 显示屏实时显示系统状态，RGB LED 多色指示工作模式。直观的状态反馈，便于学生理解控制逻辑。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔧 双模式操作</h3>
+                <p>支持自动模式（传感器触发）和手动模式（按键控制），通过长按按键切换。四种工作状态（S00/S01/S10/S11）完整覆盖控制场景。</p>
+            </div>
+            <div class="feature-card">
+                <h3>💾 配置持久化</h3>
+                <p>WiFi 配置自动保存到 NVS 存储，上电自动连接。支持配置清除和重新配置，适应不同网络环境。</p>
+            </div>
+        </div>
+
+        <div class="specs-preview">
+            <h2>📋 产品规格概览</h2>
+            <div class="spec-grid">
+                <div class="spec-item"><span>主控芯片</span><span>ESP32-WROOM-32</span></div>
+                <div class="spec-item"><span>温度范围</span><span>-55°C ~ +125°C</span></div>
+                <div class="spec-item"><span>光照检测</span><span>0 ~ 4095 (12位ADC)</span></div>
+                <div class="spec-item"><span>通信方式</span><span>WiFi 802.11 b/g/n</span></div>
+                <div class="spec-item"><span>显示模块</span><span>128x64 OLED</span></div>
+                <div class="spec-item"><span>输出控制</span><span>2路继电器</span></div>
+                <div class="spec-item"><span>指示灯</span><span>RGB LED</span></div>
+                <div class="spec-item"><span>工作电压</span><span>5V DC</span></div>
+            </div>
+            <a href="specs.html" style="display: inline-block; margin-top: 1.5rem; color: #667eea; text-decoration: none; font-weight: 500;">查看完整技术规格 →</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>PCT-100 化工控制实训装置 © 2024 | 智能控制教学平台</p>
+    </footer>
+</body>
+</html>

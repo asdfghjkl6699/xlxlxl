@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCT-100 化工控制实训装置 - 使用指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-title {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .page-title h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: #7f8c8d;
+        }
+
+        .guide-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .guide-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .guide-section h3 {
+            color: #34495e;
+            margin: 1.2rem 0 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .guide-section p {
+            color: #7f8c8d;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .guide-section ul, .guide-section ol {
+            color: #7f8c8d;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .guide-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .step-box {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0e8f8 100%);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 2rem;
+            font-weight: bold;
+            margin-right: 0.8rem;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 0 10px 10px 0;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .warning-box p {
+            color: #856404;
+            margin: 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            border-radius: 0 10px 10px 0;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-box p {
+            color: #155724;
+            margin: 0;
+        }
+
+        .mode-switch {
+            display: flex;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .mode-card {
+            flex: 1;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .mode-card h4 {
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+        }
+
+        .mode-card p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .mode-card .mode-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .lcd-display {
+            background: #000;
+            color: #0ff;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">PCT-100</div>
+            <div class="nav-links">
+                <a href="index.html">产品概述</a>
+                <a href="specs.html">技术规格</a>
+                <a href="guide.html" class="active">使用指南</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>使用指南</h1>
+            <p>详细的设备操作说明和实训教程</p>
+        </div>
+
+        <div class="guide-section">
+            <h2>🔌 第一步：硬件连接</h2>
+            <div class="step-box">
+                <span class="step-number">1</span><strong>连接电源：</strong>使用5V直流电源适配器为设备供电
+            </div>
+            <div class="step-box">
+                <span class="step-number">2</span><strong>连接传感器：</strong>确保温度传感器（DS18B20）和光照传感器正确连接
+            </div>
+            <div class="step-box">
+                <span class="step-number">3</span><strong>连接输出设备：</strong>将LED灯和风扇连接到继电器输出端
+            </div>
+            <div class="step-box">
+                <span class="step-number">4</span><strong>串口连接：</strong>通过USB线连接到电脑，打开串口调试工具（波特率115200）
+            </div>
+            <div class="warning-box">
+                <p><strong>⚠️ 注意：</strong>请确保电源电压为5V，避免使用过高电压损坏设备</p>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2>🌐 第二步：WiFi配置</h2>
+            <h3>首次配置</h3>
+            <p>设备上电后，会自动进入WiFi配置向导：</p>
+            <ol>
+                <li>设备会扫描附近的WiFi网络并列出</li>
+                <li>在串口终端输入要连接的WiFi序号（1-N）</li>
+                <li>输入WiFi密码（无密码直接回车）</li>
+                <li>等待连接成功，设备会显示IP地址</li>
+            </ol>
+
+            <h3>保存配置</h3>
+            <p>WiFi配置会自动保存到设备Flash中，下次上电会自动连接。配置保存在NVS命名空间 "wifi_config" 中。</p>
+
+            <h3>重新配置</h3>
+            <p>如需更换WiFi网络，可通过串口命令操作：</p>
+            <ul>
+                <li><code>clear</code> - 清除当前WiFi配置</li>
+                <li><code>wifi</code> - 重新进入配置向导</li>
+                <li><code>reconnect</code> - 使用保存的配置重新连接</li>
+            </ul>
+
+            <div class="success-box">
+                <p><strong>✅ 提示：</strong>连接成功后，串口会显示IP地址、子网掩码、网关等网络信息</p>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2>🎮 第三步：基本操作</h2>
+            <h3>按键说明</h3>
+            <ul>
+                <li><strong>KEY1（红色）：</strong>总电源开关，断开后所有输出关闭</li>
+                <li><strong>KEY2（蓝色）：</strong>模式切换与状态控制</li>
+            </ul>
+
+            <h3>模式切换</h3>
+            <p>长按KEY2（1-2秒）切换工作模式：</p>
+            <div class="mode-switch">
+                <div class="mode-card">
+                    <div class="mode-icon">🤖</div>
+                    <h4>自动模式</h4>
+                    <p>根据温度和光照传感器自动控制灯和风扇</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-icon">🎛️</div>
+                    <h4>手动模式</h4>
+                    <p>通过按键手动切换四种工作状态</p>
+                </div>
+            </div>
+
+            <h3>手动模式操作</h3>
+            <p>在手动模式下，短按KEY2循环切换状态：</p>
+            <ul>
+                <li>S00 → 灯灭，风扇关</li>
+                <li>S01 → 灯灭，风扇开</li>
+                <li>S10 → 灯亮，风扇关</li>
+                <li>S11 → 灯亮，风扇开</li>
+            </ul>
+        </div>
+
+        <div class="guide-section">
+            <h2>📺 显示屏说明</h2>
+            <p>OLED显示屏（128x64）实时显示系统状态：</p>
+            <div class="lcd-display">
+模式:自动    总:开
+光照: 450/500
+温度:26.5/30.0
+灯:关       风扇:开
+WiFi:是     MQTT:是
+            </div>
+            <p>显示屏分为5行：</p>
+            <ol>
+                <li><strong>第一行：</strong>工作模式（自动/手动）和总开关状态</li>
+                <li><strong>第二行：</strong>光照强度当前值/阈值</li>
+                <li><strong>第三行：</strong>温度当前值/阈值</li>
+                <li><strong>第四行：</strong>LED灯和风扇状态</li>
+                <li><strong>第五行：</strong>WiFi和MQTT连接状态</li>
+            </ol>
+        </div>
+
+        <div class="guide-section">
+            <h2>🎨 RGB指示灯说明</h2>
+            <p>RGB LED根据系统状态显示不同颜色：</p>
+            <ul>
+                <li><strong>绿色：</strong>系统正常运行，所有连接正常</li>
+                <li><strong>蓝色慢闪：</strong>WiFi未连接</li>
+                <li><strong>蓝色快闪：</strong>MQTT未连接</li>
+                <li><strong>黄色：</strong>光照越界，LED灯已启动</li>
+                <li><strong>橙色：</strong>温度越界，风扇已启动</li>
+                <li><strong>红色：</strong>严重警报，灯和风扇都启动</li>
+                <li><strong>彩虹渐变：</strong>系统启动中或WiFi配置向导</li>
+            </ul>
+        </div>
+
+        <div class="guide-section">
+            <h2>📊 实训项目示例</h2>
+            <h3>项目1：温度自动控制</h3>
+            <p>设置温度阈值，观察风扇自动启停：</p>
+            <ol>
+                <li>将设备置于自动模式</li>
+                <li>用手握住温度传感器加热</li>
+                <li>观察当温度超过阈值时风扇自动开启</li>
+                <li>温度下降后风扇自动关闭</li>
+            </ol>
+
+            <h3>项目2：光照自动控制</h3>
+            <p>设置光照阈值，观察LED灯自动开关：</p>
+            <ol>
+                <li>将设备置于自动模式</li>
+                <li>用手遮挡光照传感器</li>
+                <li>观察当光线变暗时LED灯自动点亮</li>
+                <li>移开遮挡物后LED灯自动熄灭</li>
+            </ol>
+
+            <h3>项目3：手动控制实训</h3>
+            <p>练习手动模式下的状态切换：</p>
+            <ol>
+                <li>长按KEY2切换到手动模式</li>
+                <li>短按KEY2依次切换四种状态</li>
+                <li>观察OLED显示屏和实际输出的变化</li>
+            </ol>
+        </div>
+
+        <div class="guide-section">
+            <h2>🔧 故障排除</h2>
+            <ul>
+                <li><strong>WiFi连接失败：</strong>检查密码是否正确，确保WiFi信号强度足够</li>
+                <li><strong>传感器无数据：</strong>检查传感器接线是否正确</li>
+                <li><strong>继电器无输出：</strong>检查继电器模块供电和接线</li>
+                <li><strong>显示屏不显示：</strong>检查I2C接线，确保OLED地址正确</li>
+                <li><strong>按键无响应：</strong>检查按键接线和上拉电阻</li>
+            </ul>
+            <div class="warning-box">
+                <p><strong>⚠️ 提示：</strong>遇到问题可发送 <code>HELP</code> 命令获取串口命令列表</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>PCT-100 化工控制实训装置 © 2024 | 智能控制教学平台</p>
+    </footer>
+</body>
+</html>
