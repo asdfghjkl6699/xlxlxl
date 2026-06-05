@@ -96,6 +96,12 @@
             border-bottom: 2px solid #667eea;
         }
 
+        .spec-section h3 {
+            color: #34495e;
+            margin: 1.2rem 0 0.8rem;
+            font-size: 1.1rem;
+        }
+
         .spec-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -125,12 +131,14 @@
         .function-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.9rem;
         }
 
         .function-table th, .function-table td {
             padding: 0.8rem;
             text-align: left;
             border-bottom: 1px solid #ecf0f1;
+            word-break: break-all;
         }
 
         .function-table th {
@@ -213,6 +221,17 @@
             color: #667eea;
         }
 
+        .spec-section ul {
+            color: #7f8c8d;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .spec-section li {
+            margin-bottom: 1rem;
+        }
+
         footer {
             background: rgba(255, 255, 255, 0.95);
             text-align: center;
@@ -243,11 +262,11 @@
         <div class="spec-section">
             <h2>🔧 硬件规格</h2>
             <div class="spec-grid">
-                <div class="spec-item"><label>主控芯片</label><value>ESP32-WROOM-32</value></div>
-                <div class="spec-item"><label>CPU核心</label><value>双核 Tensilica LX6</value></div>
-                <div class="spec-item"><label>主频</label><value>240 MHz</value></div>
+                <div class="spec-item"><label>主控芯片</label><value>ESP32-C3 Dev Module</value></div>
+                <div class="spec-item"><label>CPU核心</label><value>单核 RISC-V</value></div>
+                <div class="spec-item"><label>主频</label><value>160 MHz</value></div>
                 <div class="spec-item"><label>Flash容量</label><value>4 MB</value></div>
-                <div class="spec-item"><label>RAM容量</label><value>520 KB SRAM</value></div>
+                <div class="spec-item"><label>RAM容量</label><value>384 KB SRAM</value></div>
                 <div class="spec-item"><label>工作电压</label><value>5V DC</value></div>
                 <div class="spec-item"><label>工作电流</label><value>100-300 mA</value></div>
                 <div class="spec-item"><label>工作温度</label><value>-40°C ~ +85°C</value></div>
@@ -321,9 +340,52 @@
                     <tr><td>reconnect</td><td>重新连接WiFi</td></tr>
                     <tr><td>wifi</td><td>进入WiFi配置向导</td></tr>
                     <tr><td>status</td><td>查询WiFi连接状态</td></tr>
+                    <tr><td>mqtt_disconnect</td><td>断开MQTT连接</td></tr>
+                    <tr><td>mqtt_reconnect</td><td>重新连接MQTT</td></tr>
                     <tr><td>HELP</td><td>显示帮助信息</td></tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="spec-section">
+            <h2>🎨 RGB LED 状态指示</h2>
+            
+            <h3>状态优先级（从高到低）</h3>
+            <table class="function-table">
+                <thead>
+                    <tr><th>优先级</th><th>状态名称</th><th>触发条件</th><th>LED显示模式</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>严重警报</td><td>LED灯亮 + 风扇启动</td><td>红灯100ms→灭50ms→红灯100ms→灭50ms→绿灯100ms→灭50ms→绿灯100ms→灭50ms→蓝灯100ms→灭50ms→蓝灯100ms→灭350ms</td></tr>
+                    <tr><td>2</td><td>光照越界</td><td>LED灯亮</td><td>红灯300ms→灭200ms→绿灯300ms→灭200ms→蓝灯300ms→灭200ms</td></tr>
+                    <tr><td>3</td><td>温度越界</td><td>风扇启动</td><td>红灯500ms→绿灯500ms→蓝灯500ms→灭700ms</td></tr>
+                    <tr><td>4</td><td>MQTT未连接</td><td>WiFi已连接，但MQTT未连接</td><td>红→绿渐变(500ms)→绿→灭渐变(500ms)→灭→蓝渐变(500ms)→蓝→灭渐变(500ms)</td></tr>
+                    <tr><td>5</td><td>WiFi未连接</td><td>WiFi未连接</td><td>红灯200ms→绿灯200ms→灭500ms</td></tr>
+                    <tr><td>6</td><td>正常状态</td><td>所有状态正常</td><td>灭→红渐变(1s)→红→绿渐变(1s)→绿→蓝渐变(1s)→蓝→灭渐变(1s)→灭200ms</td></tr>
+                </tbody>
+            </table>
+
+            <h3>详细说明</h3>
+            <ul>
+                <li><strong>1. 严重警报（最高优先级）</strong><br>
+                    触发：LED和风扇同时开启（光照和温度都越界）<br>
+                    效果：红、红、绿、绿、蓝、蓝依次闪烁，每个颜色亮100ms，灭50ms，最后灭350ms</li>
+                <li><strong>2. 光照越界</strong><br>
+                    触发：光照强度低于阈值，LED灯开启<br>
+                    效果：红、绿、蓝依次闪烁，每个颜色亮300ms，灭200ms</li>
+                <li><strong>3. 温度越界</strong><br>
+                    触发：温度高于阈值，风扇开启<br>
+                    效果：红→绿→蓝依次亮500ms，然后灭700ms</li>
+                <li><strong>4. MQTT未连接</strong><br>
+                    触发：WiFi已连接，但MQTT服务器连接失败<br>
+                    效果：平滑渐变效果：红渐变到绿→绿渐变到灭→灭渐变到蓝→蓝渐变到灭（每步500ms）</li>
+                <li><strong>5. WiFi未连接</strong><br>
+                    触发：WiFi断开连接<br>
+                    效果：红灯亮200ms→绿灯亮200ms→灭500ms，循环</li>
+                <li><strong>6. 正常状态（最低优先级）</strong><br>
+                    触发：WiFi和MQTT都已连接，且无警报<br>
+                    效果：平滑彩虹渐变：灭→红(1s)→红→绿(1s)→绿→蓝(1s)→蓝→灭(1s)→灭200ms，循环</li>
+            </ul>
         </div>
     </div>
 
